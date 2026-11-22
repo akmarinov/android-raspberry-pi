@@ -4,6 +4,10 @@
 
 BC_PATH := $(patsubst $(CURDIR)/%,%,$(dir $(abspath $(lastword $(MAKEFILE_LIST)))))
 
+# Headless target: no camera, so skip libcamera/VC4 IPA and the camera provider
+# manifest pulled in by common/board-common.mk. Board and product makefiles are
+# resolved in separate make passes, so this is also set in device.mk.
+GD_NO_DEFAULT_CAMERA := true
 include glodroid/configuration/common/board-common.mk
 include glodroid/devices-community/gd_rpi4/drm/board.mk
 
@@ -13,13 +17,6 @@ BOARD_MESA3D_VULKAN_DRIVERS := broadcom
 BOARD_KERNEL_CMDLINE += coherent_pool=1M 8250.nr_uarts=1 snd_bcm2835.enable_compat_alsa=0 snd_bcm2835.enable_hdmi=1 snd_bcm2835.enable_headphones=1 \
                         vc_mem.mem_base=0x3ec00000 vc_mem.mem_size=0x40000000 console=ttyS0,115200 nvme_core.default_ps_max_latency_us=0 pcie_port_pm=off pcie_aspm=off \
                         nvme_core.force_write_through=1 pci=nomsi nvme_core.io_timeout=20 nvme_core.admin_timeout=20
-
-BOARD_LIBCAMERA_IPAS := rpi/vc4
-BOARD_LIBCAMERA_PIPELINES := simple rpi/vc4
-
-BOARD_LIBCAMERA_EXTRA_TARGETS += \
-    libetc:libcamera/ipa_rpi_vc4.so:libcamera:ipa_rpi_vc4.so:           \
-    libetc:libcamera/ipa_rpi_vc4.so.sign:libcamera:ipa_rpi_vc4.so.sign: \
 
 # FIXME = Remove prebuilt binaries with broken elf
 BUILD_BROKEN_ELF_PREBUILT_PRODUCT_COPY_FILES := true

@@ -6,6 +6,9 @@ dtparam=uart1=on
 arm_boost=1
 
 [all]
+# Keep start_x=1: the _x pair (start4x.elf/fixup4x.dat) is what the bootloader
+# image ships, and it is the firmware build that carries the VideoCore codecs
+# used by /dev/video11. start_x=0 would select start4.elf, which is absent.
 start_x=1
 enable_uart=1
 uart_2ndstage=1
@@ -13,7 +16,8 @@ arm_64bit=1
 enable_gic=1
 kernel=u-boot.bin
 armstub=bl31.bin
-camera_auto_detect=1
+# Headless: no camera module, don't probe/load camera overlays
+camera_auto_detect=0
 
 dtoverlay=dwc2
 dtoverlay=vc4-kms-v3d
@@ -23,7 +27,9 @@ max_framebuffers=2
 # Automatically load overlays for detected DSI displays
 display_auto_detect=1
 
-dtoverlay=cma,cma-512
+# Headless: no scanout buffers to reserve. 256 MB still covers the vc-sm-cma
+# (bcm2835-codec) buffers for 1088x832..1920x1080 H.264/MJPEG plus v3d.
+dtoverlay=cma,cma-256
 dtoverlay=rpivid-v4l2
 
 # USB

@@ -90,6 +90,13 @@ cd android-raspberry-pi
 ./unfold_aosp.sh && ./build.sh
 ```
 
+`TA_BUILD_VARIANT` selects the `lunch` variant for `build_rpi4.sh` / `build_cm4.sh`; allowed values
+are `userdebug` (default) and `user`:
+
+```bash
+TA_BUILD_VARIANT=user ./build_rpi4.sh
+```
+
 ### Notes
 
 - Depending on your hardware and internet connection, downloading and building may take 8h or more.  

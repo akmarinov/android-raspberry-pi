@@ -2,6 +2,10 @@
 #
 # Copyright (C) 2020-2023 Roman Stratiienko (r.stratiienko@gmail.com)
 
+# Headless: no camera HAL, no camera provider, no camera permission xmls.
+# device-common.mk tests this before the inherit below runs, so it must be set
+# here as well as in BoardConfig.mk (separate make passes).
+GD_NO_DEFAULT_CAMERA := true
 $(call inherit-product, glodroid/configuration/common/device-common.mk)
 $(call inherit-product, glodroid/devices-community/gd_rpi4/drm/device.mk)
 
@@ -41,12 +45,6 @@ PRODUCT_VENDOR_PROPERTIES += vendor.hwc.drm.ctm=DRM_OR_IGNORE
 # 196609 == 0x00030001 == GLES v3.1
 PRODUCT_VENDOR_PROPERTIES += \
     ro.opengles.version=196609
-
-# Camera
-PRODUCT_PACKAGES += ipa_rpi_vc4.so ipa_rpi_vc4.so.sign
-
-LIBCAMERA_CFGS := $(wildcard glodroid/vendor/libcamera/src/ipa/rpi/vc4/data/*json)
-PRODUCT_COPY_FILES += $(foreach cfg,$(LIBCAMERA_CFGS),$(cfg):$(TARGET_COPY_OUT_VENDOR)/etc/libcamera/ipa/rpi/vc4/$(notdir $(cfg))$(space))
 
 # Codecs
 PRODUCT_VENDOR_PROPERTIES += \
