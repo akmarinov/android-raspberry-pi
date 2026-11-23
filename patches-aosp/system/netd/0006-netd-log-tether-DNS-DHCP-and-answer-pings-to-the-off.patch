@@ -1,0 +1,43 @@
+From 91ff10637fb59be3df8201b78483ce1943d5ebe4 Mon Sep 17 00:00:00 2001
+From: Andrey <andrey@Andreys-Mac-mini-4.local>
+Date: Mon, 23 Nov 2026 09:49:42 +0200
+Subject: [PATCH] netd: log tether DNS/DHCP and answer pings to the
+ offline-mode address
+
+Tesla firmware 2026.44 rejects the offline-mode connectivity check.
+Log dnsmasq queries and DHCP to logcat (temporary) so the failing check
+can be identified, and DNAT ICMP to 104.248.101.213 onto the Pi so a
+ping-based check gets a reply.
+---
+ server/TetherController.cpp | 8 ++++++++
+ 1 file changed, 8 insertions(+)
+
+diff --git a/server/TetherController.cpp b/server/TetherController.cpp
+index fd175b5..0a26a86 100644
+--- a/server/TetherController.cpp
++++ b/server/TetherController.cpp
+@@ -277,6 +277,11 @@ int TetherController::startTethering(bool usingLegacyDnsProxy, int num_addrs, ch
+     argVector.push_back("--address=/device.teslaandroid.com/104.248.101.213");
+     argVector.push_back("--address=/www.device.teslaandroid.com/104.248.101.213");
+ 
++    // TEMPORARY diagnostics: log every DNS query and DHCP exchange from the car to logcat
++    // (tag "dnsmasq") so the offline-mode connectivity check can be debugged on new Tesla firmware.
++    argVector.push_back("--log-queries");
++    argVector.push_back("--log-dhcp");
++
+     if(offlineModeEnabled == 1) {
+ 	argVector.push_back("--address=/connman.vn.tesla.services/104.248.101.213");
+         argVector.push_back("--address=/www.teslamotors.com/104.248.101.213");
+@@ -611,6 +616,9 @@ int TetherController::setDefaults() {
+         "*nat",
+         StringPrintf("-A PREROUTING -d %s -i %s -p tcp -j DNAT --to-destination %s", destinationIp.c_str(), interface.c_str(), sourceIp.c_str()),
+         StringPrintf("-A PREROUTING -d %s -i %s -p udp -j DNAT --to-destination %s", destinationIp.c_str(), interface.c_str(), sourceIp.c_str()),
++        // Answer pings to the spoofed address too: the car's connectivity test can include ICMP,
++        // and without a default route the Pi would reply "network unreachable".
++        StringPrintf("-A PREROUTING -d %s -i %s -p icmp -j DNAT --to-destination %s", destinationIp.c_str(), interface.c_str(), sourceIp.c_str()),
+         StringPrintf("-A POSTROUTING -s %s -p tcp -j SNAT --to-source %s", sourceIp.c_str(), destinationIp.c_str()),
+         StringPrintf("-A POSTROUTING -s %s -p udp -j SNAT --to-source %s", sourceIp.c_str(), destinationIp.c_str()),
+ 	StringPrintf("-A PREROUTING -d %s -i %s -p tcp --dport %d -j DNAT --to-destination %s:%d", youtubeIp.c_str(), interface.c_str(), destinationPort, sourceIp.c_str(), sourcePort),
+-- 
+2.54.0 (Apple Git-157)
+
